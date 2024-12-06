@@ -1,0 +1,31 @@
+service: my-first-function
+
+provider:
+  name: aws
+  runtime: Node.js 20.x
+  region: us-central-1 # Specify the AWS region
+
+functions:
+  my-first-function:
+    handler: src/app.index.handler
+    memorySize: 128
+    timeout: 30
+    environment:
+      
+    events:
+      - http:
+          path: /api/hello
+          method: GET
+      - sns:
+          arn: 
+      - s3:
+          bucket: 
+          events:
+            - 
+
+resources:
+  Resources:
+    MyBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: my-company-lambda-deployments
