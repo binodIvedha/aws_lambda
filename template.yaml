@@ -1,41 +1,31 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: AWS Lambda function deployment template
+service: hello-world-api
 
-Resources:
-  LambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: ${{ values.functionName }}
-      CodeUri: ${{ values.codeUri }}
-      Handler: ${{ values.handler }}
-      Runtime: ${{ values.runtime }}
-      MemorySize: ${{ values.memorySize }}
-      Timeout: ${{ values.timeout }}
-      Environment:
-        Variables:
-          ${{ values.environment }}
-      Events:
-        # HTTP Event
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: ${{ values.eventPath }}
-            Method: ${{ values.eventMethod }}
-        # SNS Event (if configured)
-        SnsEvent:
-          Type: SNS
-          Properties:
-            Topic: ${{ values.arn }}
-        # S3 Event (if configured)
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket: ${{ values.bucket }}
-            Events: ${{ values.bucketEvent }}
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-central-1 # Specify the AWS region
 
-  # S3 Bucket for deployments
-  DeploymentBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: ${{ values.s3Bucket }}
+functions:
+  hello-world-api:
+    handler: src/app.index.handler
+    memorySize: 128
+    timeout: 30
+    environment:
+      
+    events:
+      - http:
+          path: /hello
+          method: GET
+      - sns:
+          arn: 
+      - s3:
+          bucket: hello-lambda-deployments-binodbandara
+          events:
+            - s3:ObjectCreated:*
+
+resources:
+  Resources:
+    MyBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: hello-lambda-deployments-binodbandara

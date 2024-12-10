@@ -12,9 +12,9 @@ phases:
   post_build:
     commands:
       - echo "Packaging application with SAM"
-      - sam package --s3-bucket ${{ values.s3Bucket }} --output-template-file packaged.yaml
+      - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --template-file packaged.yaml --stack-name ${{ values.functionName }} --capabilities CAPABILITY_IAM
+      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM
 
 artifacts:
   files:
