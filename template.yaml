@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: hello-world-api
-      CodeUri: ./
+      CodeUri: .
       Handler: index.handler
       Runtime: nodejs18.x
       MemorySize: 128
@@ -18,3 +18,8 @@ Resources:
           Properties:
             Path: /hello
             Method: get
+
+Outputs:
+  WebEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
