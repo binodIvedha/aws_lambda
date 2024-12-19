@@ -12,21 +12,9 @@ Resources:
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 3
-      Policies:
-        - AWSLambdaBasicExecutionRole
       Events:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /hello-world-api
-            Method: GET
-
-  DeploymentBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: hello-lambda-deployments-binodbandara
-
-Outputs:
-  ApiUrl:
-    Description: URL of your API endpoint
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
+            Path: /hello
+            Method: get
