@@ -1,46 +1,46 @@
 version: 0.2
 
+env:
+  variables:
+    STACK_NAME: "hello-world-api"
+    REGION: "eu-north-1"
+
 phases:
   install:
     runtime-versions:
       python: 3.9
     commands:
-      - echo "Installing dependencies"
+      - pip install --upgrade pip
       - pip install --upgrade aws-sam-cli
       - pip install --upgrade awscli
   
   pre_build:
     commands:
-      - echo "Setting up AWS region"
-      - AWS_REGION="eu-north-1"
-      - aws configure set default.region $AWS_REGION
-      - echo "Cleaning up existing stack"
-      - aws cloudformation delete-stack --stack-name hello-world-api || true
-      - sleep 30
+      - echo "Cleaning up any existing stack"
+      - aws cloudformation delete-stack --stack-name $STACK_NAME --region $REGION || true
+      - sleep 60
   
   build:
     commands:
-      - echo "Building application with SAM"
-      - sam build --debug
+      - echo "Building SAM application"
+      - sam build
+      - sam validate
   
   post_build:
     commands:
-      - echo "Packaging and deploying application"
+      - echo "Starting deployment"
       - |
         sam deploy \
-          --template-file template.yaml \
-          --stack-name hello-world-api \
+          --template-file .aws-sam/build/template.yaml \
+          --stack-name $STACK_NAME \
+          --region $REGION \
           --capabilities CAPABILITY_IAM \
-          --region eu-north-1 \
           --resolve-s3 \
+          --disable-rollback \
           --no-fail-on-empty-changeset \
-          --no-confirm-changeset \
-          --debug \
-          --force-upload \
-          --on-failure DELETE
+          --no-confirm-changeset
 
 artifacts:
   files:
     - template.yaml
-    - packaged.yaml
     - .aws-sam/**/*
