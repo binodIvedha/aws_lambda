@@ -18,8 +18,21 @@ Resources:
           Properties:
             Path: /hello-world-api
             Method: GET
+      Role: !GetAtt LambdaExecutionRole.Arn  # Added this
 
-  # Optional: S3 Bucket for deployments if you need it
+  LambdaExecutionRole:    # Added this role
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   DeploymentBucket:
     Type: AWS::S3::Bucket
     Properties:
