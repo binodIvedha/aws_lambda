@@ -11,7 +11,7 @@ Resources:
       Handler: index.handler
       Runtime: nodejs18.x
       MemorySize: 128
-      Timeout: 30
+      Timeout: 3
       Environment:
         Variables:
           
@@ -20,19 +20,19 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /api/hello
-            Method: POST
+            Path: /hello-world-api
+            Method: GET
         # SNS Event (if configured)
         SnsEvent:
           Type: SNS
           Properties:
-            Topic: 
+            Topic: arn:aws:execute-api:eu-north-1:205930628023:kwpyer3ux6/*/*/hello-world-api
         # S3 Event (if configured)
         S3Event:
           Type: S3
           Properties:
             Bucket: hello-lambda-deployments-binodbandara
-            Events: s3:ObjectCreated:*
+            Events: 
 
   # S3 Bucket for deployments
   DeploymentBucket:
