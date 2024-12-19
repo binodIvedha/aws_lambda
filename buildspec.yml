@@ -5,6 +5,16 @@ phases:
     commands:
       - echo "Installing dependencies"
       - pip install aws-sam-cli
+  pre_build:
+    commands:
+      # Check and clean up failed stack
+      - |
+        if aws cloudformation describe-stacks --stack-name hello-world-api 2>/dev/null | grep -q "DELETE_FAILED\|ROLLBACK_FAILED"; then
+          echo "Stack is in DELETE_FAILED or ROLLBACK_FAILED state. Force deleting stack..."
+          aws cloudformation delete-stack --stack-name hello-world-api
+          echo "Waiting for stack deletion to complete..."
+          aws cloudformation wait stack-delete-complete --stack-name hello-world-api
+        fi
   build:
     commands:
       - echo "Building application with SAM"
@@ -14,8 +24,19 @@ phases:
       - echo "Packaging application with SAM"
       - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM
+      - |
+        sam deploy \
+          --template-file packaged.yaml \
+          --stack-name hello-world-api \
+          --capabilities CAPABILITY_IAM \
+          --no-fail-on-empty-changeset \
+          || {
+            echo "Deployment failed. Checking stack events..."
+            aws cloudformation describe-stack-events --stack-name hello-world-api --max-items 5
+            exit 1
+          }
 
 artifacts:
   files:
     - packaged.yaml
+  discard-paths: yes
