@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Lambda function deployment template
+
 Resources:
   LambdaFunction:
     Type: AWS::Serverless::Function
@@ -11,20 +12,21 @@ Resources:
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 3
+      Policies:
+        - AWSLambdaBasicExecutionRole
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /hello-world-api
             Method: GET
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket: !Ref DeploymentBucket
-            Events: 
-              - s3:ObjectCreated:*
 
   DeploymentBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: hello-lambda-deployments-binodbandara
+
+Outputs:
+  ApiUrl:
+    Description: URL of your API endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
