@@ -25,6 +25,7 @@ phases:
       - |
         sam deploy \
           --stack-name hello-world-api \
+          --s3-bucket hello-lambda-deployments-binodbandara \
           --capabilities CAPABILITY_IAM \
           --no-fail-on-empty-changeset \
           --no-confirm-changeset \
