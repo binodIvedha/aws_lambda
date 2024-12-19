@@ -1,20 +1,23 @@
 version: 0.2
-
 phases:
   install:
+    runtime-versions:
+      python: 3.9
     commands:
       - echo "Installing dependencies"
-      - pip install aws-sam-cli
+      - pip install --upgrade aws-sam-cli
+  
   build:
     commands:
       - echo "Building application with SAM"
       - sam build
+  
   post_build:
     commands:
       - echo "Packaging application with SAM"
       - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM
+      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset
 
 artifacts:
   files:
