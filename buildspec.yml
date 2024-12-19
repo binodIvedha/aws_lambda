@@ -17,10 +17,6 @@ phases:
           echo "Waiting for stack deletion..."
           sleep 30
         fi
-      - echo "Verifying template files..."
-      - ls -la
-      - echo "Template content:"
-      - cat template.yaml
 
   build:
     commands:
@@ -30,21 +26,9 @@ phases:
   post_build:
     commands:
       - echo "Packaging application"
-      - sam package \
-          --s3-bucket hello-lambda-deployments-binodbandara \
-          --output-template-file packaged.yaml \
-          --region eu-north-1
-      
+      - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml --region eu-north-1
       - echo "Deploying application"
-      - sam deploy \
-          --template-file packaged.yaml \
-          --stack-name hello-world-api \
-          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-          --region eu-north-1 \
-          --no-confirm-changeset \
-          --no-fail-on-empty-changeset \
-          --force-upload \
-          --debug
+      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region eu-north-1 --no-confirm-changeset --no-fail-on-empty-changeset --force-upload --debug
 
 artifacts:
   files:
