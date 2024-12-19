@@ -12,15 +12,16 @@ Resources:
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 3
+      Role: !GetAtt LambdaExecutionRole.Arn
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /hello-world-api
             Method: GET
-      Role: !GetAtt LambdaExecutionRole.Arn  # Added this
+            RestApiId: !Ref ServerlessRestApi
 
-  LambdaExecutionRole:    # Added this role
+  LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -28,10 +29,31 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: lambda.amazonaws.com
+              Service: 
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaApiGatewayPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - execute-api:Invoke
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: 
+        Type: REGIONAL
 
   DeploymentBucket:
     Type: AWS::S3::Bucket
@@ -42,3 +64,6 @@ Outputs:
   ApiEndpoint:
     Description: "API Gateway endpoint URL"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
+  FunctionArn:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
