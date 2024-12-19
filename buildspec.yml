@@ -8,27 +8,17 @@ phases:
 
   pre_build:
     commands:
-      - echo "Cleaning up any existing stack..."
-      # First detach policies from the role
-      - |
-        ROLE_NAME="hello-world-api-LambdaExecutionRole"
-        if aws iam list-attached-role-policies --role-name $ROLE_NAME --region eu-north-1 2>/dev/null; then
-          for ARN in $(aws iam list-attached-role-policies --role-name $ROLE_NAME --query 'AttachedPolicies[].PolicyArn' --output text); do
-            aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $ARN
-          done
-        fi
-      # Then try to delete the role
-      - aws iam delete-role --role-name $ROLE_NAME --region eu-north-1 || true
-      # Now delete the stack
-      - aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1
-      - echo "Waiting for 30 seconds..."
-      - sleep 30
-      # Verify deletion
+      - echo "Checking stack status..."
       - |
         if aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 2>/dev/null; then
-          echo "Stack deletion failed, trying with retain-resources..."
-          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "LambdaExecutionRole" "HelloWorldFunction" "ServerlessRestApi"
-          sleep 30
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 --query 'Stacks[0].StackStatus' --output text)
+          if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ] || [ "$STACK_STATUS" = "DELETE_FAILED" ]; then
+            echo "Deleting failed stack..."
+            aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1
+            echo "Waiting for stack deletion..."
+            aws cloudformation wait stack-delete-complete --stack-name hello-world-api --region eu-north-1
+            sleep 30
+          fi
         fi
 
   build:
@@ -40,8 +30,23 @@ phases:
     commands:
       - echo "Packaging application"
       - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml --region eu-north-1
+      - echo "Showing stack events before deployment..."
+      - aws cloudformation describe-stack-events --stack-name hello-world-api --region eu-north-1 || true
       - echo "Deploying application"
-      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region eu-north-1 --no-confirm-changeset --no-fail-on-empty-changeset --force-upload --debug
+      - |
+        if ! sam deploy \
+          --template-file packaged.yaml \
+          --stack-name hello-world-api \
+          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+          --region eu-north-1 \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --force-upload \
+          --debug; then
+          echo "Deployment failed. Showing stack events:"
+          aws cloudformation describe-stack-events --stack-name hello-world-api --region eu-north-1
+          exit 1
+        fi
 
 artifacts:
   files:
