@@ -8,14 +8,27 @@ phases:
 
   pre_build:
     commands:
-      - echo "Checking stack status..."
+      - echo "Cleaning up any existing stack..."
+      # First attempt to delete normally
+      - aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 || true
+      - echo "Waiting for 30 seconds..."
+      - sleep 30
+      # Then check if still exists and try with retain-resources
       - |
-        STACK_STATUS=$(aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
-        if [ "$STACK_STATUS" = "DELETE_FAILED" ]; then
-          echo "Stack is in DELETE_FAILED state, removing with retained resources..."
-          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "HelloWorldFunction" "ServerlessRestApi"
-          echo "Waiting for stack deletion..."
+        if aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 2>/dev/null; then
+          echo "Stack still exists, trying force delete with retain-resources..."
+          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "HelloWorldFunction" "ServerlessRestApi" || true
+          echo "Waiting another 30 seconds..."
           sleep 30
+        fi
+      # Final verification
+      - echo "Verifying stack is deleted..."
+      - |
+        if aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 2>/dev/null; then
+          echo "Stack still exists - manual cleanup may be required"
+          exit 1
+        else
+          echo "Stack successfully deleted"
         fi
 
   build:
