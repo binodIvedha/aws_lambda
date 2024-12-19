@@ -9,26 +9,26 @@ phases:
   pre_build:
     commands:
       - echo "Cleaning up any existing stack..."
-      # First attempt to delete normally
-      - aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 || true
+      # First detach policies from the role
+      - |
+        ROLE_NAME="hello-world-api-LambdaExecutionRole"
+        if aws iam list-attached-role-policies --role-name $ROLE_NAME --region eu-north-1 2>/dev/null; then
+          for ARN in $(aws iam list-attached-role-policies --role-name $ROLE_NAME --query 'AttachedPolicies[].PolicyArn' --output text); do
+            aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $ARN
+          done
+        fi
+      # Then try to delete the role
+      - aws iam delete-role --role-name $ROLE_NAME --region eu-north-1 || true
+      # Now delete the stack
+      - aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1
       - echo "Waiting for 30 seconds..."
       - sleep 30
-      # Then check if still exists and try with retain-resources
+      # Verify deletion
       - |
         if aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 2>/dev/null; then
-          echo "Stack still exists, trying force delete with retain-resources..."
-          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "HelloWorldFunction" "ServerlessRestApi" || true
-          echo "Waiting another 30 seconds..."
+          echo "Stack deletion failed, trying with retain-resources..."
+          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "LambdaExecutionRole" "HelloWorldFunction" "ServerlessRestApi"
           sleep 30
-        fi
-      # Final verification
-      - echo "Verifying stack is deleted..."
-      - |
-        if aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 2>/dev/null; then
-          echo "Stack still exists - manual cleanup may be required"
-          exit 1
-        else
-          echo "Stack successfully deleted"
         fi
 
   build:
