@@ -8,16 +8,19 @@ phases:
 
   pre_build:
     commands:
-      - echo "Checking and cleaning up stack status"
+      - echo "Checking stack status..."
       - |
         STACK_STATUS=$(aws cloudformation describe-stacks --stack-name hello-world-api --region eu-north-1 --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
-        if [ "$STACK_STATUS" = "ROLLBACK_FAILED" ] || [ "$STACK_STATUS" = "DELETE_FAILED" ]; then
-          echo "Stack is in $STACK_STATUS state, removing stack resources..."
-          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1
-          aws cloudformation wait stack-delete-complete --stack-name hello-world-api --region eu-north-1
-          # Extra wait to ensure complete cleanup
+        if [ "$STACK_STATUS" = "DELETE_FAILED" ]; then
+          echo "Stack is in DELETE_FAILED state, removing with retained resources..."
+          aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 --retain-resources "HelloWorldFunction" "ServerlessRestApi"
+          echo "Waiting for stack deletion..."
           sleep 30
         fi
+      - echo "Verifying template files..."
+      - ls -la
+      - echo "Template content:"
+      - cat template.yaml
 
   build:
     commands:
@@ -26,23 +29,25 @@ phases:
 
   post_build:
     commands:
-      - echo "Packaging and deploying application"
-      - |
-        sam package \
+      - echo "Packaging application"
+      - sam package \
           --s3-bucket hello-lambda-deployments-binodbandara \
           --output-template-file packaged.yaml \
           --region eu-north-1
-      - |
-        sam deploy \
+      
+      - echo "Deploying application"
+      - sam deploy \
           --template-file packaged.yaml \
           --stack-name hello-world-api \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
           --region eu-north-1 \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset \
+          --force-upload \
           --debug
 
 artifacts:
   files:
     - packaged.yaml
+    - template.yaml
   discard-paths: yes
