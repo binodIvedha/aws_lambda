@@ -7,37 +7,29 @@ phases:
       - pip install aws-sam-cli
   pre_build:
     commands:
-      - echo "Checking stack status"
-      - |
-        if aws cloudformation describe-stacks --stack-name hello-world-api 2>/dev/null; then
-          echo "Stack exists, checking status..."
-          STATUS=$(aws cloudformation describe-stacks --stack-name hello-world-api --query 'Stacks[0].StackStatus' --output text)
-          if [[ $STATUS == *FAILED* ]]; then
-            echo "Stack is in $STATUS state. Deleting stack..."
-            aws cloudformation delete-stack --stack-name hello-world-api
-            echo "Waiting for stack deletion..."
-            aws cloudformation wait stack-delete-complete --stack-name hello-world-api
-          fi
-        fi
+      - echo "Force deleting any existing stack..."
+      - aws cloudformation delete-stack --stack-name hello-world-api --region eu-north-1 || true
+      - echo "Waiting for stack deletion..."
+      - aws cloudformation wait stack-delete-complete --stack-name hello-world-api --region eu-north-1 || true
   build:
     commands:
       - echo "Building application with SAM"
-      - sam build --template-file template.yaml
+      - sam build
   post_build:
     commands:
       - echo "Packaging application with SAM"
       - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
-      - echo "Deploying application with SAM"
-      - |
-        sam deploy \
-        --template-file packaged.yaml \
-        --stack-name hello-world-api \
-        --capabilities CAPABILITY_IAM \
-        --no-fail-on-empty-changeset \
-        --region eu-north-1
+      - echo "Starting deployment..."
+      - >
+        sam deploy 
+        --template-file packaged.yaml 
+        --stack-name hello-world-api 
+        --capabilities CAPABILITY_IAM 
+        --region eu-north-1 
+        --no-confirm-changeset 
+        --no-fail-on-empty-changeset
 
 artifacts:
   files:
     - packaged.yaml
-    - template.yaml
   discard-paths: yes
