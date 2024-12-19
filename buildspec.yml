@@ -6,19 +6,31 @@ phases:
     commands:
       - echo "Installing dependencies"
       - pip install --upgrade aws-sam-cli
+      - pip install --upgrade awscli
+  
+  pre_build:
+    commands:
+      - echo "Cleaning up existing stack"
+      - aws cloudformation delete-stack --stack-name hello-world-api || true
+      - aws cloudformation wait stack-delete-complete --stack-name hello-world-api || true
   
   build:
     commands:
       - echo "Building application with SAM"
-      - sam build
+      - sam build --debug
   
   post_build:
     commands:
-      - echo "Packaging application with SAM"
-      - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset
+      - |
+        sam deploy \
+          --stack-name hello-world-api \
+          --capabilities CAPABILITY_IAM \
+          --no-fail-on-empty-changeset \
+          --no-confirm-changeset \
+          --debug
 
 artifacts:
   files:
+    - template.yaml
     - packaged.yaml
