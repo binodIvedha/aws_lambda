@@ -7,13 +7,17 @@ phases:
       - pip install aws-sam-cli
   pre_build:
     commands:
-      # Check and clean up failed stack
+      - echo "Checking stack status"
       - |
-        if aws cloudformation describe-stacks --stack-name hello-world-api 2>/dev/null | grep -q "DELETE_FAILED\|ROLLBACK_FAILED"; then
-          echo "Stack is in DELETE_FAILED or ROLLBACK_FAILED state. Force deleting stack..."
-          aws cloudformation delete-stack --stack-name hello-world-api
-          echo "Waiting for stack deletion to complete..."
-          aws cloudformation wait stack-delete-complete --stack-name hello-world-api
+        if aws cloudformation describe-stacks --stack-name hello-world-api 2>/dev/null; then
+          echo "Stack exists, checking status..."
+          STATUS=$(aws cloudformation describe-stacks --stack-name hello-world-api --query 'Stacks[0].StackStatus' --output text)
+          if [[ $STATUS == *FAILED* ]]; then
+            echo "Stack is in $STATUS state. Deleting stack..."
+            aws cloudformation delete-stack --stack-name hello-world-api
+            echo "Waiting for stack deletion..."
+            aws cloudformation wait stack-delete-complete --stack-name hello-world-api
+          fi
         fi
   build:
     commands:
@@ -26,15 +30,11 @@ phases:
       - echo "Deploying application with SAM"
       - |
         sam deploy \
-          --template-file packaged.yaml \
-          --stack-name hello-world-api \
-          --capabilities CAPABILITY_IAM \
-          --no-fail-on-empty-changeset \
-          || {
-            echo "Deployment failed. Checking stack events..."
-            aws cloudformation describe-stack-events --stack-name hello-world-api --max-items 5
-            exit 1
-          }
+        --template-file packaged.yaml \
+        --stack-name hello-world-api \
+        --capabilities CAPABILITY_IAM \
+        --no-fail-on-empty-changeset \
+        --region eu-north-1
 
 artifacts:
   files:
