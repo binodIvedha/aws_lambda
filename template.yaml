@@ -12,14 +12,22 @@ Resources:
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'execute-api:*'
+              Resource: '*'
       Events:
-        ApiEvent:
-          Type: Api
+        Api:
+          Type: HttpApi
           Properties:
             Path: /hello
-            Method: get
+            Method: GET
 
 Outputs:
-  WebEndpoint:
-    Description: API Gateway endpoint URL
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
+  ApiEndpoint:
+    Description: HTTP API endpoint URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/hello"
