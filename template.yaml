@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: AWS Lambda function deployment template
 
 Resources:
-  LambdaFunction:
+  HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: hello-world-api
@@ -12,30 +12,20 @@ Resources:
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 3
-      Environment:
-        Variables:
-          
       Events:
-        # HTTP Event
         ApiEvent:
           Type: Api
           Properties:
             Path: /hello-world-api
             Method: GET
-        # SNS Event (if configured)
-        SnsEvent:
-          Type: SNS
-          Properties:
-            Topic: arn:aws:execute-api:eu-north-1:205930628023:kwpyer3ux6/*/*/hello-world-api
-        # S3 Event (if configured)
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket: hello-lambda-deployments-binodbandara
-            Events: 
 
-  # S3 Bucket for deployments
+  # Optional: S3 Bucket for deployments if you need it
   DeploymentBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: hello-lambda-deployments-binodbandara
+
+Outputs:
+  ApiEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
