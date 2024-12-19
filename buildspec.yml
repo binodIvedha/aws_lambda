@@ -1,4 +1,5 @@
 version: 0.2
+
 phases:
   install:
     runtime-versions:
@@ -10,9 +11,12 @@ phases:
   
   pre_build:
     commands:
+      - echo "Setting up AWS region"
+      - AWS_REGION="eu-north-1"
+      - aws configure set default.region $AWS_REGION
       - echo "Cleaning up existing stack"
       - aws cloudformation delete-stack --stack-name hello-world-api || true
-      - aws cloudformation wait stack-delete-complete --stack-name hello-world-api || true
+      - sleep 30
   
   build:
     commands:
@@ -21,17 +25,22 @@ phases:
   
   post_build:
     commands:
-      - echo "Deploying application with SAM"
+      - echo "Packaging and deploying application"
       - |
         sam deploy \
+          --template-file template.yaml \
           --stack-name hello-world-api \
-          --s3-bucket hello-lambda-deployments-binodbandara \
           --capabilities CAPABILITY_IAM \
+          --region eu-north-1 \
+          --resolve-s3 \
           --no-fail-on-empty-changeset \
           --no-confirm-changeset \
-          --debug
+          --debug \
+          --force-upload \
+          --on-failure DELETE
 
 artifacts:
   files:
     - template.yaml
     - packaged.yaml
+    - .aws-sam/**/*
