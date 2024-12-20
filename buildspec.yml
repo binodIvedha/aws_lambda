@@ -23,6 +23,7 @@ phases:
           --template-file packaged.yaml \
           --stack-name hello-world-api \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+          --region eu-north-1 \
           --no-fail-on-empty-changeset
 
 artifacts:
