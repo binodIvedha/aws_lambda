@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Lambda function deployment template
 
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 3
+    MemorySize: 128
+
 Resources:
   LambdaFunction:
     Type: AWS::Serverless::Function
@@ -9,9 +15,6 @@ Resources:
       FunctionName: hello-world-api
       CodeUri: ./
       Handler: index.handler
-      Runtime: nodejs18.x
-      MemorySize: 128
-      Timeout: 3
       Environment:
         Variables: {}
       Events:
@@ -20,10 +23,8 @@ Resources:
           Properties:
             Path: /hello-world-api
             Method: GET
-      Policies:
-        - AWSLambdaBasicExecutionRole  # This gives basic Lambda execution permissions
 
 Outputs:
-  ApiEndpoint:
+  HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
