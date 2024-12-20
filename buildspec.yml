@@ -15,16 +15,9 @@ phases:
   post_build:
     commands:
       - echo "Packaging application with SAM"
-      - sam package \
-          --s3-bucket hello-lambda-deployments-binodbandara \
-          --output-template-file packaged.yaml
+      - sam package --s3-bucket hello-lambda-deployments-binodbandara --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy \
-          --template-file packaged.yaml \
-          --stack-name hello-world-api \
-          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-          --region eu-north-1 \
-          --no-fail-on-empty-changeset
+      - sam deploy --template-file packaged.yaml --stack-name hello-world-api --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region eu-north-1 --no-fail-on-empty-changeset
 
 artifacts:
   files:
