@@ -15,16 +15,16 @@ Resources:
       FunctionName: hello-world-api
       CodeUri: ./
       Handler: index.handler
-      Environment:
-        Variables: {}
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /hello-world-api
             Method: GET
+      Policies:
+        - AWSLambdaBasicExecutionRole
 
 Outputs:
   HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage"
+    Description: API Gateway endpoint URL for Prod stage
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello-world-api"
