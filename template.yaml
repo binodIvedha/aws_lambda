@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: functionfortestingplatformnex
-      CodeUri: ./
+      CodeUri: .
       Handler: index.handler
       Runtime: nodejs18.x
       MemorySize: 128
