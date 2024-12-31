@@ -7,14 +7,15 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: functionfortestingplatformnex
-      CodeUri: .
+      CodeUri: ./
       Handler: index.handler
       Runtime: nodejs18.x
       MemorySize: 128
       Timeout: 30
       Environment:
         Variables:
-          db=mylocaldB
+          abc:ABC
+          cde:CDE
       Events:
         # HTTP Event
         ApiEvent:
@@ -26,7 +27,7 @@ Resources:
         SnsEvent:
           Type: SNS
           Properties:
-            Topic: arn:aws:apigateway:eu-north-1::/apis/az3am9wc5g
+            Topic: arn:aws:lambda:eu-north-1:205930628023:function:hello-world-api
         # S3 Event (if configured)
         S3Event:
           Type: S3
