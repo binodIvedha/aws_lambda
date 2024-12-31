@@ -1,10 +1,14 @@
 version: 0.2
-
 phases:
   install:
     commands:
       - echo "Installing dependencies"
       - pip install aws-sam-cli
+  pre_build:
+    commands:
+      - echo "Cleaning up any failed stacks"
+      - aws cloudformation delete-stack --stack-name functionfortestingplatformnex || true
+      - aws cloudformation wait stack-delete-complete --stack-name functionfortestingplatformnex || true
   build:
     commands:
       - echo "Building application with SAM"
@@ -14,8 +18,14 @@ phases:
       - echo "Packaging application with SAM"
       - sam package --s3-bucket bucketfortestplatformnex --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --debug --template-file packaged.yaml --stack-name functionfortestingplatformnex --region eu-north-1 --capabilities CAPABILITY_IAM
-
+      - |
+        sam deploy \
+          --template-file packaged.yaml \
+          --stack-name functionfortestingplatformnex \
+          --region eu-north-1 \
+          --capabilities CAPABILITY_IAM \
+          --no-fail-on-empty-changeset \
+          --disable-rollback
 artifacts:
   files:
     - packaged.yaml
