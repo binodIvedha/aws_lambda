@@ -36,7 +36,7 @@ Resources:
         #     Events: 
         #       - s3:ObjectCreated:*
 
-  DeploymentBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: bucketfortestplatformnex
+  # DeploymentBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties:
+  #     BucketName: bucketfortestplatformnex
