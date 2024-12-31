@@ -16,6 +16,8 @@ Resources:
         Variables:
           abc: "ABC"  # Fixed syntax: needs space after colon
           cde: "CDE"
+      Policies:
+        - AWSLambdaBasicExecutionRole    
       Events:
         ApiEvent:
           Type: Api
