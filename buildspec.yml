@@ -14,7 +14,7 @@ phases:
       - echo "Packaging application with SAM"
       - sam package --s3-bucket bucketfortestplatformnex --output-template-file packaged.yaml
       - echo "Deploying application with SAM"
-      - sam deploy --template-file packaged.yaml --stack-name functionfortestingplatformnex --region eu-north-1 --capabilities CAPABILITY_IAM
+      - sam deploy --debug --template-file packaged.yaml --stack-name functionfortestingplatformnex --region eu-north-1 --capabilities CAPABILITY_IAM
 
 artifacts:
   files:
